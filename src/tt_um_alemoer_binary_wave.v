@@ -53,7 +53,7 @@ module tt_um_alemoer_binary_wave (
   always @(posedge clk) begin
     if (!rst_n) t <= 0;
     else if (tick) t <= t + 8'd1;
-  end
+end
 
   // ---------------------------------------------------------------
   // Wave layers
@@ -180,6 +180,9 @@ module tt_um_alemoer_binary_wave (
     if (!display_on) col = 6'b00_00_00;
   end
 
-  always @(posedge clk) RGB <= col;
+  always @(posedge clk) begin
+    if (!rst_n) RGB <= 6'b0;
+    else        RGB <= col;
+  end
 
 endmodule
