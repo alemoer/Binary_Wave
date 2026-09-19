@@ -9,21 +9,23 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-CDM Matrix is a VGA "digital rain" display. It outputs 640x480 at 60 Hz from a 25.175 MHz clock and needs no memory: every pixel is calculated on the fly.
+Binary Wave is a VGA display of rolling waves made of 1s and 0s. It outputs 640x480 at 60 Hz from a 25.175 MHz clock and needs no memory: every pixel is calculated on the fly.
 
-- **Character grid.** The screen is divided into 8x12-pixel cells (80 columns by 40 rows). A small glyph ROM holds an 8x12 bitmap for each character.
-- **The message.** The character shown in each cell is picked from the phrase **COLEGIO DE MUNTINLUPA** (21 characters, uppercase). The index is `(row + column) mod 21`, so every column reads the phrase from top to bottom and repeats it, with each neighboring column shifted by one letter.
-- **The rain.** A frame counter, advanced once per frame on VSync, drives falling "drops". Each column has its own speed and offset, some columns are switched off, and each drop has a bright leading edge that fades into a colored tail. For roughly the first thousand frames (about 17 seconds) the rain sweeps in from the top of the screen; after that the full rain runs continuously.
-- **Colors.** The fade uses one of four 6-bit (2 bits per channel) palettes stored in a small ROM.
+- **Character grid.** The screen is divided into 8x8-pixel cells (80 columns by 60 rows). The only characters are `1` and a slashed `0`, drawn as 5x7 bitmaps directly in logic, so no glyph ROM is needed.
+- **Wave layers.** Eight layers each draw a line of characters that follows its own wave. The height of a layer at each column is the sum of two triangle waves with softened peaks: one drifts right and one ripples left at a different speed. Every layer has its own phase offset, so the layers roll against each other like a 3D surface. The front layers swing more than the back ones.
+- **Ones and zeros.** Whether a cell shows `1` or `0` depends on the wave height at that spot, so the digits flip as a wave passes over them. Each line is two rows thick: a bright row with a dimmer row under it.
+- **Animation.** A frame counter, advanced once per frame at the start of vertical blanking, moves the waves.
+- **Colors.** Colors use 2 bits per channel. Layers go from dark blue-teal at the back to bright cyan at the front. `1` uses the layer color and `0` is slightly greener.
 
-Modules: `tt_um_vga_glyph_mode` (top level, message and rain logic), `glyphs_rom` (character bitmaps), `palette_rom` (colors), `hvsync_generator` (VGA timing).
+The design has no inputs. The VGA mode is fixed to 640x480.
+
+Modules: `tt_um_alemoer_binary_wave` (top level: wave, glyph and color logic) and `hvsync_generator` (VGA timing).
 
 ## How to test
 
 1. Connect a TinyVGA Pmod to the output pins `uo[7:0]` and plug it into a VGA monitor.
-2. Run the design with a 25.175 MHz clock. Keep `ui[7:6]` low (640x480 mode) and reset with `rst_n`.
-3. Green rain made of the letters of COLEGIO DE MUNTINLUPA should appear.
-4. Change the palette with `ui[1:0]`: `00` green, `01` red, `10` blue, `11` pride.
+2. Run the design with a 25.175 MHz clock and reset with `rst_n`. No input pins are used.
+3. Rolling waves made of teal and cyan 1s and 0s should appear on a black background and keep moving.
 
 The design can also be tried in the Tiny Tapeout VGA Playground.
 
@@ -35,4 +37,4 @@ The design can also be tried in the Tiny Tapeout VGA Playground.
 
 ## Credits
 
-This design is based on the `tt_um_vga_glyph_mode` matrix-rain design by James Ross (Apache-2.0). The change made for this project is the message: the glyph index is taken from the phrase COLEGIO DE MUNTINLUPA instead of cycling through the whole glyph set.
+The VGA timing module `hvsync_generator` comes from the `tt_um_vga_glyph_mode` design by James Ross (Apache-2.0). The wave, glyph and color logic in the top module is new for this project.
