@@ -156,6 +156,8 @@ module tt_um_alemoer_binary_wave (
     dim = 1'b0;
     one = 1'b0;
     lc  = 6'b0;
+    wk  = 6'd0; 
+    grow = 5'd0;
     for (k = 0; k < 8; k = k + 1) begin
       yk = layer_y(k[2:0], cx);
       dk = cy - yk;
